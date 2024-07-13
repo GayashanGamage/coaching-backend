@@ -18,5 +18,9 @@ class UserVerification(UserEmail):
     password: str
 
 
-# class VerificationCode(UserEmail):
-#     code: int
+class VerificationCode(UserEmail):
+    code: int
+
+
+class PasswordReset(UserVerification):
+    pass

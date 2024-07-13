@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
-from .Schemas import UserAuth, User, UserEmail
+from .Schemas import UserAuth, User, UserEmail, VerificationCode, PasswordReset
 from fastapi.responses import JSONResponse
 from Auth import *
 from random import randint
@@ -65,8 +65,16 @@ async def login(user: UserAuth):
 
 
 @auth.patch('/admin-password-reset', tags=['backoffice-user'])
-async def passwordReset():
-    pass
+async def passwordReset(passwordReset: PasswordReset):
+    userDetails = admin.find_one({"email": passwordReset.email})
+    if userDetails == None or userDetails["password_changable"] == False:
+        return JSONResponse(status_code=400, content={"error": "not allowed"})
+    elif userDetails["password_changable"] == True:
+        secreteKeyCount = len(userDetails['validation_key'])
+        admin.update_one({"email": userDetails["email"]}, {
+                         '$set': {"password": passwordReset.password, "password_changable": False, f"validation_key.{secreteKeyCount-1}.availability": False}})
+        return JSONResponse(status_code=200, content={"message": "sucsessfull"})
+
 
 # get verification code - admin
 # email should contain inside of jwt
@@ -132,8 +140,16 @@ async def verificationCodeSend(user: UserEmail):
 # verify secrete code
 
 
-# @app.post('/admin-code-verification')
-# async def codeVerification(code: VerificationCode):
-#     pass
+@auth.post('/admin-code-verification', tags=['backoffice-user'])
+async def codeVerification(verificationCode: VerificationCode):
+    userDetails = admin.find_one({"email": verificationCode.email})
+    if userDetails != None and userDetails["validation_key"][-1]["code"] == verificationCode.code:
+        admin.update_one({'email': verificationCode.email}, {
+                         '$set': {"password_changable": True}})
+        return JSONResponse(status_code=200, content={'message': 'sucsusfull'})
+    elif userDetails != None and userDetails["validation_key"][-1]["code"] != verificationCode.code:
+        return JSONResponse(status_code=400, content={"error": "key not valied"})
+    else:
+        return JSONResponse(status_code=400, content={"error": "not allowed"})
 
 # -----------------------------

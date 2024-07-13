@@ -52,7 +52,12 @@ def sendEmail(mailData):
 async def login(user: UserAuth):
     userDetails = admin.find_one({'username': user.username})
     if userDetails != None:
-        if userDetails['password'] == user.password:
+        # get verified password as : bool
+        verify_password = verifyPassword(
+            user.password, userDetails["password"])
+
+        if verify_password == True:
+            # if userDetails['password'] == user.password:
             jwtToken = encodeJWT(os.getenv('adminJWT'), {
                                  'name': user.username})
             return JSONResponse(status_code=200, content={'message': 'sucssesfull', 'token': jwtToken})
@@ -67,12 +72,15 @@ async def login(user: UserAuth):
 @auth.patch('/admin-password-reset', tags=['backoffice-user'])
 async def passwordReset(passwordReset: PasswordReset):
     userDetails = admin.find_one({"email": passwordReset.email})
+    # get hashed password
+    hashed_password = hashPassword(passwordReset.password)
+
     if userDetails == None or userDetails["password_changable"] == False:
         return JSONResponse(status_code=400, content={"error": "not allowed"})
     elif userDetails["password_changable"] == True:
         secreteKeyCount = len(userDetails['validation_key'])
         admin.update_one({"email": userDetails["email"]}, {
-                         '$set': {"password": passwordReset.password, "password_changable": False, f"validation_key.{secreteKeyCount-1}.availability": False}})
+                         '$set': {"password": hashed_password, "password_changable": False, f"validation_key.{secreteKeyCount-1}.availability": False}})
         return JSONResponse(status_code=200, content={"message": "sucsessfull"})
 
 

@@ -17,8 +17,6 @@ def sendEmail(mailData):
     Headers = {"Some-Custom-Name": "unique-id-1234"}
     send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
         to=mailData['to'], headers=Headers, sender=Sender, subject=mailData['subject'], params=mailData['params'], template_id=mailData['template'])
-    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(to=[{"name": "chamodi", "email": "chamodijanithya@gmail.com"}], headers={"Some-Custom-Name": "unique-id-1234"}, sender={
-                                                   "name": "gayashan", "email": "gayashan.randimagamage@gmail.com"}, subject="password reset", template_id=3, params=mailData["params"])
     try:
         api_response = api_instance.send_transac_email(send_smtp_email)
         return {'mail_id': api_response._message_id, 'message': 'sucsusfull'}

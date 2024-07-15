@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from Backoffice import Backoffice
 from Client import Client
-# from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 origins = [
+    # this is only access to localhost
     "http://localhost",
     "http://localhost:8080",
 ]

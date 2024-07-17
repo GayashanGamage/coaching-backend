@@ -16,6 +16,7 @@ db = mongo['consult']
 cluster = db['users']
 liveSessionSchedul = db['liveSessionSchedul']
 calendar = db['calendar']
+user = db['user']
 
 routes = APIRouter()
 routes.include_router(User.auth)
@@ -96,12 +97,25 @@ async def setTimeSlots(details : timeSlot):
 # list all client 
 @routes.get('/clients', tags=['backoffice-function'])
 async def listClients():
-    pass
+    clientDetails = user.find({}, {'email' : 1, 'lastName' : 1, 'firstName' : 1})
+    clientList = []
+    if clientDetails == None:
+        clientDetails = []
+    else:
+        for item in clientDetails:
+            item['_id'] = str(item['_id'])
+            clientList.append(item)
+    return JSONResponse(status_code=200, content={'allUsers' : clientList})
 
 # get single client information
-@routes.get('/client/:id', tags=['backoffice-function'])
-async def client():
-    pass
+@routes.get('/client/{id}', tags=['backoffice-function'])
+async def client(id : str):
+    clientDetails = user.find_one({'_id' : ObjectId(id)}, {'password' : 0, 'validation_key' : 0})
+    if clientDetails == None:
+        return JSONResponse(status_code=400, content={"error" : "no content"})
+    else:
+        clientDetails['_id'] = str(clientDetails['_id'])
+        return JSONResponse(status_code=200, content=clientDetails)
 
 # admin summery page data 
 @routes.get('/summery', tags=['backoffice-function'])

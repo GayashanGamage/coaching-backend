@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from . import User
 from pymongo import MongoClient
-from .Schemas import LiveSession, LiveSessionWithId
+from .Schemas import LiveSession, LiveSessionWithId, timeSlot
 from fastapi.responses import JSONResponse
 import os
 from dotenv import load_dotenv
@@ -15,6 +15,7 @@ mongo = MongoClient(os.getenv('mongo'))
 db = mongo['consult']
 cluster = db['users']
 liveSessionSchedul = db['liveSessionSchedul']
+calendar = db['calendar']
 
 routes = APIRouter()
 routes.include_router(User.auth)
@@ -43,20 +44,54 @@ async def updateLiveSession(details : LiveSessionWithId):
         liveSessionSchedul.update_one({'_id' : ObjectId(details.id) }, {'$set' : updatedDetails})
         return JSONResponse(status_code=200, content={'message' : 'sucsessful'})
 
+#list all live sessions 
 @routes.get('/list-session', tags=['backoffice-function'])
 async def listSession():
-    pass
+    allSessions = liveSessionSchedul.find()
+    if allSessions == None:
+        return JSONResponse(status_code=400, content={'error' : 'no content'})
+    else:
+        sessionList = []
+        for item in allSessions:
+            # convert all datetime and object to string
+            item['_id'] = str(item['_id'])
+            item['postTime'] = str(item['postTime'])
+            item['create'] = str(item['create'])
+            
+            # this is optional field. there for we have to check the existancy
+            if 'lastUpdate' in item:
+                item['lastUpdate'] = str(item['lastUpdate'])
+            sessionList.append(item)
+        return JSONResponse(status_code=200, content={'sessions' : sessionList})
 
 
-# manage admins' timeslots 
-@routes.post('/manage-timeslots', tags=['backoffice-function'])
-async def manageTimeSlots():
-    pass
+# get admins' timeslots 
+@routes.get('/get-timeslots', tags=['backoffice-function'])
+async def getTimeSlots(date : str): # 2024-07-17
+    schedulDetails = calendar.find_one({'date' : date})
+    if schedulDetails == None:
+        schedulDetails = []
+    return JSONResponse(status_code=200, content={'date' : date, 'avilableTime' : schedulDetails})
+    
 
-# accept refund request made by client
-@routes.post('/refund-accept', tags=['backoffice-function'])
-async def refuncAccept():
-    pass
+# set admins' timeslots 
+# 24 hours should be in avilableTime
+@routes.post('/set-timeslots', tags=['backoffice-function'])
+async def setTimeSlots(details : timeSlot):
+    schedulDetails = calendar.find_one({'date' : details.date})
+
+    # create new date
+    if schedulDetails == None:
+        calendar.insert_one(details.model_dump())
+        return JSONResponse(status_code=201, content={'message' : 'create new date'})
+    # request without timeslots
+    elif len(details.avilableTime) == 0:
+        return JSONResponse(status_code=400, content={'erro' : 'cannot strore empty timeslots'})
+    # upodate existing date
+    else:
+        calendar.update_one({'date' : details.date}, {'$set' : {'avilableTime' : details.avilableTime}})
+        return JSONResponse(status_code=200, content={'message' : 'update sucssesfully'})
+
 
 # list all client 
 @routes.get('/clients', tags=['backoffice-function'])

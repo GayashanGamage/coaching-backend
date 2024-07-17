@@ -1,7 +1,7 @@
 # this is for define all schemass
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 date = str(datetime.now().date())
 time = str(datetime.now().time())
@@ -42,3 +42,12 @@ class LiveSession(BaseModel):
 class LiveSessionWithId(LiveSession):
     id : str
     lastUpdate : Optional[datetime] = Field(default=datetime.now())
+
+class timeSlotTime(BaseModel):
+    time : int
+    availability : bool
+
+
+class timeSlot(BaseModel):
+    date : str
+    avilableTime : List[timeSlotTime]

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 origins = [
     # this is only access to localhost
+    "https://api.gamage.me",
     "http://localhost",
     "http://localhost:8080",
 ]

@@ -6,6 +6,13 @@ from typing import Optional, List
 date = str(datetime.now().date())
 time = str(datetime.now().time())
 
+class UserDetails(BaseModel):
+    firstName : str
+    lastName : str
+    username : str
+    password : str
+    email : EmailStr
+
 class User(BaseModel):
     username: str
 

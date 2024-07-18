@@ -9,6 +9,8 @@ origins = [
     "https://api.gamage.me",
     "http://localhost",
     "http://localhost:8080",
+    # add vuejs localhost port
+    "http://localhost:5173/"
 ]
 
 app.add_middleware(

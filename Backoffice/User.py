@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
-from .Schemas import UserAuth, User, UserEmail, VerificationCode, PasswordReset
+from .Schemas import UserAuth, User, UserEmail, VerificationCode, PasswordReset, UserDetails
 from fastapi.responses import JSONResponse
 from Auth import *
 from random import randint
@@ -21,9 +21,21 @@ auth = APIRouter()
 
 # ------------------------------
 # endpoints
+# create new admin user
+@auth.post('/create-user')
+async def createUser(userDetails : UserDetails):
+    userName = admin.find_one({'username' : userDetails.username})
+    email = admin.find_one({'email' : userDetails.email})
+    if userName == None and email == None:
+        userDetails.password = hashPassword(userDetails.password)
+        userData = userDetails.model_dump()
+        admin.insert_one(userData)
+        return JSONResponse(status_code=200, content={'message' : 'account create succesfully'})
+    else:
+        return JSONResponse(status_code=400, content={'error' : 'detials are exist'})
+
+
 # user login - admin
-
-
 @auth.post('/admin-login', tags=['backoffice-user'])
 async def login(user: UserAuth):
     userDetails = admin.find_one({'username': user.username})

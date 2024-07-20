@@ -21,6 +21,8 @@ admin = db['admin']
 auth = APIRouter()
 
 # ------------------------------
+
+
 # endpoints
 # create new admin user
 createUser = {
@@ -114,8 +116,8 @@ async def login(user: UserAuth):
             user.password, userDetails["password"])
         # if password verified issue token
         if verify_password == True:
-            jwtToken = encodeJWT(user.username, os.getenv('adminJWT'), {
-                                 'name': user.username})
+            JWTdata = {'username' : userDetails['username'], 'password' : userDetails['password']}
+            jwtToken = encodeJWT(JWTdata, os.getenv('adminJWT'))
             return JSONResponse(status_code=200, content={'message': 'sucssesfull', 'token': jwtToken})
         # if password not valied
         else:

@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends
 from . import User
 from pymongo import MongoClient
-from .Schemas import LiveSession, LiveSessionWithId, timeSlot
+from .Schemas import LiveSession, LiveSessionWithId, timeSlot, User as UserName
 from fastapi.responses import JSONResponse
 import os
 from dotenv import load_dotenv
@@ -19,6 +19,7 @@ cluster = db['users']
 liveSessionSchedul = db['liveSessionSchedul']
 calendar = db['calendar']
 user = db['user']
+admin = db['admin']
 
 routes = APIRouter()
 routes.include_router(User.auth)
@@ -327,3 +328,37 @@ async def summary(token: Dict =Depends(authVerification)):
         return JSONResponse(status_code=401, content={'error' : 'unauthorized'})
     else:
         return JSONResponse(status_code=200, content={'message' : 'successful'})
+
+# JWT verification
+# docuemnt respond
+responses = { 200 : {
+        "description" : "successful",
+        "content" : {
+            "application/json" : {
+                "example" : {
+                    "message" : "successful"
+                }
+            }
+        }
+    },
+    401 : {
+        "description" : "unauthorized request",
+        "content" : {
+            "application/json" : {
+                "example" : {
+                    "error" : "unauthorized"
+                }
+            }
+        }
+    },
+}
+
+@routes.get('/admin-auth', tags=['backoffice-function'], responses=responses, summary="basic JWT verification for admin")
+async def adminAuth(user : UserName, token : Dict = Depends(authVerification)):
+    # find user details from database
+    userDetails = admin.find_one({'username' : user.username})
+    # evaluate borth username and JWT token
+    if token and userDetails and token['password'] == userDetails['password']:
+        return JSONResponse(status_code=200, content={'message' : 'successful'})
+    else:
+        return JSONResponse(status_code=401, content={'error' : 'unathorized'})

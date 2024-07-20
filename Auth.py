@@ -10,8 +10,8 @@ load_dotenv()
 bearer = HTTPBearer()
 
 # encode JWT
-def encodeJWT(username, secret, userData):
-    return jwt.encode({'username' : username}, secret, algorithm='HS256')
+def encodeJWT(userdata, secret):
+    return jwt.encode(userdata, secret, algorithm='HS256')
 
 # decode JWT
 def decodeJWT(token):

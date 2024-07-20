@@ -1,6 +1,6 @@
 # this is for all functionalities for backoffice site
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from . import User
 from pymongo import MongoClient
 from .Schemas import LiveSession, LiveSessionWithId, timeSlot
@@ -8,6 +8,8 @@ from fastapi.responses import JSONResponse
 import os
 from dotenv import load_dotenv
 from bson import ObjectId
+from Auth import authVerification
+from typing import Dict
 
 load_dotenv()
 
@@ -295,6 +297,33 @@ async def client(id : str):
         return JSONResponse(status_code=200, content=clientDetails)
 
 # admin summery page data 
-@routes.get('/summery', tags=['backoffice-function'])
-async def summery():
-    pass
+# document responses
+responses = { 200 : {
+        "description" : "successful",
+        "content" : {
+            "application/json" : {
+                "example" : {
+                    "message" : "successful"
+                }
+            }
+        }
+    },
+    401 : {
+        "description" : "unauthorized request",
+        "content" : {
+            "application/json" : {
+                "example" : {
+                    "error" : "unauthorized"
+                }
+            }
+        }
+    },
+}
+
+@routes.get('/summary', tags=['backoffice-function'], responses=responses, summary="summary of entire platform")
+async def summary(token: Dict =Depends(authVerification)):
+    # validate JTW token
+    if token == False:
+        return JSONResponse(status_code=401, content={'error' : 'unauthorized'})
+    else:
+        return JSONResponse(status_code=200, content={'message' : 'successful'})

@@ -10,6 +10,7 @@ from Auth import *
 from random import randint
 from datetime import datetime
 from Email import *
+from typing import Dict
 
 
 load_dotenv()
@@ -113,7 +114,7 @@ async def login(user: UserAuth):
             user.password, userDetails["password"])
         # if password verified issue token
         if verify_password == True:
-            jwtToken = encodeJWT(os.getenv('adminJWT'), {
+            jwtToken = encodeJWT(user.username, os.getenv('adminJWT'), {
                                  'name': user.username})
             return JSONResponse(status_code=200, content={'message': 'sucssesfull', 'token': jwtToken})
         # if password not valied

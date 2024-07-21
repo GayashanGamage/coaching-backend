@@ -353,7 +353,7 @@ responses = { 200 : {
     },
 }
 
-@routes.get('/admin-auth', tags=['backoffice-function'], responses=responses, summary="basic JWT verification for admin")
+@routes.post('/admin-auth', tags=['backoffice-function'], responses=responses, summary="basic JWT verification for admin")
 async def adminAuth(user : UserName, token : Dict = Depends(authVerification)):
     # find user details from database
     userDetails = admin.find_one({'username' : user.username})

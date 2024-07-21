@@ -6,10 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 origins = [
     # this is only access to localhost
-    "https://backoffice.gamage.me"
+    "http://localhost:5173",
+    "https://backoffice.gamage.me",
     "http://localhost:8080",
     # add vuejs localhost port
-    "http://localhost:5173"
     "http://localhost",
 ]
 
